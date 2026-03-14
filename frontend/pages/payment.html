@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AquaConnect | Payment</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="../js/branding.js"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#137fec",
+                "background-light": "#f6f7f8",
+                "background-dark": "#101922",
+              },
+              fontFamily: {
+                "display": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<script src="../js/unifiedNavbar.js"></script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<nav class="border-b border-primary/10 bg-white/50 dark:bg-background-dark/50 backdrop-blur-md sticky top-0 z-50">
+<div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="size-8 flex items-center justify-center bg-primary rounded-lg shadow-[0_0_15px_rgba(19,127,236,0.5)]">
+<span class="material-icons text-white text-xl">water_drop</span>
+</div>
+<h2 class="text-gradient text-xl font-black leading-tight tracking-tight pr-4 border-r border-slate-300 dark:border-slate-700 hidden sm:block">AquaConnect</h2>
+<span class="text-[11px] font-bold text-slate-500 pl-4 uppercase tracking-[0.2em] hidden md:inline mt-1">Tap. Book. Flow.</span>
+</div>
+<div class="flex items-center gap-4">
+    <!-- Profile Dropdown Configured by unifiedNavbar -->
+    <div class="relative z-50">
+        <button id="profileBtn" class="w-10 h-10 rounded-full border border-primary/20 p-0.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-shadow">
+            <img class="w-full h-full rounded-full object-cover" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmwREKtOn_E5uRSj_Z26y1pdvmILNvMoIP2uhku_wFfXVghFA426Irpw2pV7BkUkGpETaqpdOKyBLyw1PPV-RFH2wG81eBzQspo17OdvCAbt04W13sNTlH6SE5FGGzi4sv7H1nP429i9FJ6GZvdvAmL0skTva1GCdFVmKLaxdrG03grTeaICDKRX-XcbM3ZxjJRIBKva8m6zMlwyBOpZsCF9UDyls5xhtmZMM0clP_aGusaR6pVqMdgXzAlEFN-C_p2Vdug8rBjuTy"/>
+        </button>
+    </div>
+</div>
+</div>
+</nav>
+<main class="max-w-5xl mx-auto px-4 py-8 md:py-12">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<div class="lg:col-span-7 space-y-6">
+<div>
+<h1 class="text-2xl font-bold mb-2">Select Payment Method</h1>
+<p class="text-slate-500 dark:text-slate-400">Choose how you'd like to pay for your water service.</p>
+</div>
+<div class="space-y-4">
+<label class="relative block group cursor-pointer">
+<input checked="" class="peer sr-only" name="payment" type="radio"/>
+<div class="glass-card p-5 rounded-xl border-2 border-primary/10 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-icons">qr_code_2</span>
+</div>
+<div>
+<h3 class="font-semibold text-lg">UPI Payment</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Pay using Google Pay, PhonePe, or BHIM</p>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-primary/20 peer-checked:bg-primary flex items-center justify-center">
+<div class="w-2.5 h-2.5 rounded-full bg-white opacity-0 peer-checked:opacity-100"></div>
+</div>
+</div>
+</div>
+</label>
+<label class="relative block group cursor-pointer">
+<input class="peer sr-only" name="payment" type="radio"/>
+<div class="glass-card p-5 rounded-xl border-2 border-primary/10 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-icons">payments</span>
+</div>
+<div>
+<h3 class="font-semibold text-lg">Cash on Delivery</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Pay when your water arrives</p>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-primary/20 flex items-center justify-center">
+<div class="w-2.5 h-2.5 rounded-full bg-white opacity-0 peer-checked:opacity-100"></div>
+</div>
+</div>
+</div>
+</label>
+<label class="relative block group cursor-pointer">
+<input class="peer sr-only" name="payment" type="radio"/>
+<div class="glass-card p-5 rounded-xl border-2 border-primary/10 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-icons">account_balance_wallet</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-semibold text-lg">Partial Advance</h3>
+<span class="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold uppercase">Popular</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400">Pay 20% now, balance after delivery</p>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-primary/20 flex items-center justify-center">
+<div class="w-2.5 h-2.5 rounded-full bg-white opacity-0 peer-checked:opacity-100"></div>
+</div>
+</div>
+</div>
+</label>
+</div>
+<div class="p-6 rounded-xl border border-primary/10 bg-primary/5">
+<div class="flex items-start gap-3">
+<span class="material-icons text-primary">verified_user</span>
+<div>
+<h4 class="font-medium text-slate-900 dark:text-slate-100">Secure Payment</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Your transaction is protected by 256-bit SSL encryption. We do not store your full card or UPI details on our servers.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-5">
+        <div class="sticky top-24 glass-card rounded-xl border border-primary/10 overflow-hidden shadow-2xl">
+            <div class="p-6 border-b border-primary/10">
+                <h2 class="text-xl font-bold">Booking Summary</h2>
+            </div>
+            <div class="p-6 space-y-6">
+                <div class="flex gap-4">
+                    <div class="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-primary/10 flex items-center justify-center">
+                        <span class="material-icons text-primary text-3xl">local_shipping</span>
+                    </div>
+                    <div>
+                        <h4 id="payCompanyName" class="font-semibold text-lg">—</h4>
+                        <p id="payCapacity" class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">—</p>
+                        <p id="paySlot" class="text-sm text-primary mt-1">—</p>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500 dark:text-slate-400">Delivery charge</span>
+                        <span id="paySubtotal" class="font-medium">—</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500 dark:text-slate-400">Platform fee</span>
+                        <span class="font-medium text-green-500">Free</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-slate-500 dark:text-slate-400">GST (18%)</span>
+                        <span id="payGST" class="font-medium">—</span>
+                    </div>
+                    <div class="pt-3 border-t border-dashed border-primary/20 flex justify-between items-end">
+                        <div>
+                            <span class="block text-xs uppercase tracking-wider text-slate-400 font-bold">Total Amount</span>
+                            <span id="payTotal" class="text-3xl font-bold text-primary">—</span>
+                        </div>
+                        <span class="text-xs text-slate-400 mb-1">Incl. all taxes</span>
+                    </div>
+                </div>
+                <button onclick="window.location.href='tracking.html'"
+                        class="w-full py-4 rounded-xl font-bold text-white btn-gradient hover:shadow-lg hover:shadow-primary/30 flex items-center justify-center gap-2 group">
+                    <span>Confirm Payment</span>
+                    <span class="material-icons text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </button>
+                <div class="flex flex-col items-center gap-2">
+                    <p class="text-[10px] text-slate-500 dark:text-slate-500 text-center px-4">
+                        By clicking "Confirm Payment", you agree to AquaConnect's Terms of Service and Privacy Policy.
+                    </p>
+                </div>
+            </div>
+        </div>
+        </div>
+        </div>
+</main>
+<footer class="mt-20 py-10 border-t border-primary/10">
+<div class="max-w-7xl mx-auto px-4 text-center">
+<div class="flex items-center justify-center gap-2 mb-4">
+<div class="w-6 h-6 bg-primary/20 rounded-full flex items-center justify-center">
+<span class="material-icons text-primary text-[14px]">water_drop</span>
+</div>
+<span class="text-sm font-semibold opacity-60">AquaConnect SaaS Platform</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-500">© 2024 AquaConnect Inc. All rights reserved.</p>
+</div>
+</footer>
+<canvas id="shader-background" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none;"></canvas>
+<script src="../js/shaderBackground.js"></script>
+<script src="../js/globalStyles.js"></script>
+<script src="../js/themeGlobal.js"></script>
+<script>
+// bookingLogic.js (inline) — hydrates booking summary from sessionStorage
+document.addEventListener("DOMContentLoaded", () => {
+    const companyName = sessionStorage.getItem("companyName") || "—";
+    const rawPrice    = parseFloat(sessionStorage.getItem("price")) || 0;
+    const capacity    = sessionStorage.getItem("capacity")          || "—";
+    const timeSlot    = sessionStorage.getItem("timeSlotDisplay") || sessionStorage.getItem("timeSlot") || "—";
+    const date        = sessionStorage.getItem("date")             || "Today";
+    const district    = sessionStorage.getItem("district")         || "";
+
+    const gst   = rawPrice * 0.18;
+    const total = rawPrice + gst;
+
+    const fmt = v => "₹" + v.toFixed(0);
+
+    const el = id => document.getElementById(id);
+
+    const nameEl = el("payCompanyName");
+    const capEl  = el("payCapacity");
+    const slotEl = el("paySlot");
+    const subEl  = el("paySubtotal");
+    const gstEl  = el("payGST");
+    const totEl  = el("payTotal");
+
+    if (nameEl) nameEl.textContent = companyName;
+    if (capEl)  capEl.textContent  = `${capacity}L Tanker${district ? " · " + district : ""}`;
+    if (slotEl) slotEl.textContent = `Delivery: ${date} · ${timeSlot}`;
+    if (subEl)  subEl.textContent  = fmt(rawPrice);
+    if (gstEl)  gstEl.textContent  = fmt(gst);
+    if (totEl)  totEl.textContent  = fmt(total);
+
+    // Guard: if no booking data, prompt return to search
+    if (!sessionStorage.getItem("companyId")) {
+        console.warn("No booking data found in sessionStorage. Please complete a search first.");
+    }
+});
+</script>
+</body></html>

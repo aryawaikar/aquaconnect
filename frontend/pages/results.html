@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<style>
+    /* Custom Map Marker styles */
+    .leaflet-popup-content-wrapper { border-radius: 12px; }
+    .cheapest-marker { filter: hue-rotate(120deg) saturate(3); }
+</style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<title>AquaConnect - Tanker Results</title>
+<script src="../js/unifiedNavbar.js"></script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-slate-200 dark:border-slate-800 px-6 py-4 bg-background-light dark:bg-background-dark sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-[0_0_15px_rgba(19,127,236,0.5)]">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<h2 class="text-gradient text-xl font-black leading-tight tracking-tight pr-4 border-r border-slate-300 dark:border-slate-700 hidden sm:block">AquaConnect</h2>
+<span class="text-[11px] font-bold text-slate-500 pl-4 uppercase tracking-[0.2em] hidden md:inline mt-1">Tap. Book. Flow.</span>
+</div>
+<div class="hidden md:flex flex-col min-w-80">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-10 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+<div class="text-slate-500 flex items-center justify-center pl-4">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input id="companySearchInput" class="w-full border-none bg-transparent focus:ring-0 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 px-3 text-sm" placeholder="Search company names..." value=""/>
+</div>
+</div>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<nav class="hidden lg:flex items-center gap-8">
+<a class="text-primary text-sm font-semibold border-b-2 border-primary pb-1" href="#">Fleet Tracking</a>
+</nav>
+<!-- Profile Dropdown Configured by unifiedNavbar -->
+<div class="relative z-50">
+    <button id="profileBtn" class="bg-primary/20 p-0.5 rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-shadow">
+        <img class="aspect-square rounded-full size-9 object-cover border-2 border-primary" data-alt="User profile avatar showing a professional male" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVNMhYEj1STUrf6uRyUuHtFmwlwg-LDULkquesD3_74dmTNodJZZDw-XyXrH52KPCHM-OMsbz6eS8W-_MabXsPsPadxij3gHc0jsU5P5Hwir9yNjZgUxu0LBGka84_Iz3qZlPv-ysNJvUsjFTGhcjgffIXwZGK8qooVyGkArlDRDcKLnHyzmSsVNACx09jUXhmoJ6X1Ue3MhPw8En6RQzHZznQkku8VjJsWiHN03BpHWnzQ2E3xGgmkgpgqDlj0VJPt9xuHiFWz6rd"/>
+    </button>
+</div>
+</div>
+</header>
+<main class="flex-1 px-6 md:px-12 py-8 max-w-[1440px] mx-auto w-full">
+<!-- Sub Navigation & Filters -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+<div>
+<h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Tanker Company Results</h1>
+<p id="resultsSubtitle" class="text-slate-500 dark:text-slate-400 mt-1">Searching for available tankers...</p>
+</div>
+<div class="flex gap-3 flex-wrap">
+<div class="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+<button id="sortByPrice" class="flex h-8 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-slate-700 px-4 shadow-sm">
+<span class="text-slate-900 dark:text-slate-100 text-sm font-semibold">Sort by: Price</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<button id="sortByDistance" class="flex h-8 items-center justify-center gap-x-2 rounded-lg px-4 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+<span class="text-sm font-semibold">Distance</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<button id="sortByRating" class="flex h-8 items-center justify-center gap-x-2 rounded-lg px-4 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+<span class="text-sm font-semibold">Rating</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+</div>
+<button class="flex h-10 items-center justify-center gap-x-2 rounded-xl bg-slate-100 dark:bg-slate-800 px-4 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+<span class="material-symbols-outlined text-xl">filter_list</span>
+<span class="text-sm font-semibold">Filters</span>
+</button>
+</div>
+</div>
+<!-- Grid Layout -->
+<div id="resultsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <!-- Dynamic company cards will be inserted here by backendConnection.js -->
+</div>
+
+</main>
+<!-- Bottom Floating Action (Optional SaaS Style) -->
+<div class="fixed bottom-6 right-6 z-40">
+<button id="viewMapBtn" class="flex items-center gap-2 bg-slate-900 dark:bg-primary text-white px-6 py-3 rounded-full shadow-lg hover:shadow-[0_0_20px_rgba(19,127,236,0.5)] hover:bg-blue-600 transition-all duration-300">
+<span class="material-symbols-outlined">map</span>
+<span class="font-bold">View Map</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Map Modal (Full Screen) -->
+<div id="mapModal" class="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm opacity-0 invisible transition-all duration-300 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 w-full h-full max-w-6xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden transform scale-95 transition-transform duration-300" id="mapModalContent">
+        <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+            <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">map</span> Tankers in your area
+            </h2>
+            <button id="closeMapBtn" class="size-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="flex-1 relative">
+            <div id="tankerMap" class="absolute inset-0 z-0"></div>
+            <div id="mapLoading" class="absolute inset-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
+                <span class="material-symbols-outlined text-4xl text-primary animate-spin" style="animation: spin 1s linear infinite;">refresh</span>
+                <p class="text-slate-600 dark:text-slate-400 mt-2 font-medium">Locating tankers...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<canvas id="shader-background" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none;"></canvas>
+<script src="../js/shaderBackground.js"></script>
+<script src="../js/globalStyles.js"></script>
+<script src="../js/themeGlobal.js"></script>
+<script src="../js/backendConnection.js"></script>
+<script src="../js/branding.js"></script>
+<script>
+// Company name search — filters already-rendered cards instantly, no API calls
+document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById("companySearchInput");
+    if (!searchInput) return;
+
+    searchInput.addEventListener("input", function () {
+        const query = this.value.toLowerCase().trim();
+        const cards = document.querySelectorAll(".company-card");
+
+        let visibleCount = 0;
+        cards.forEach(card => {
+            const nameEl = card.querySelector(".company-name");
+            const name   = nameEl ? nameEl.innerText.toLowerCase() : "";
+            const show   = name.includes(query);
+            card.style.display = show ? "" : "none";
+            if (show) visibleCount++;
+        });
+
+        // Update subtitle to reflect filtered count
+        const subtitle = document.getElementById("resultsSubtitle");
+        if (subtitle && cards.length > 0) {
+            subtitle.textContent = query
+                ? `Showing ${visibleCount} of ${cards.length} companies`
+                : subtitle.dataset.fullText || subtitle.textContent;
+            if (!query) delete subtitle.dataset.fullText;
+            else if (!subtitle.dataset.fullText) subtitle.dataset.fullText = subtitle.textContent;
+        }
+    });
+});
+</script>
+<script>
+// Sort buttons — re-render window._allCompanies in a new order
+document.addEventListener("DOMContentLoaded", () => {
+    const sortBtns = {
+        price:    document.getElementById("sortByPrice"),
+        distance: document.getElementById("sortByDistance"),
+        rating:   document.getElementById("sortByRating"),
+    };
+
+    const allBtns = Object.values(sortBtns).filter(Boolean);
+
+    // Visual active state helpers
+    function setActive(activeBtn) {
+        allBtns.forEach(btn => {
+            btn.classList.remove("bg-white", "dark:bg-slate-700", "shadow-sm",
+                                 "text-slate-900", "dark:text-slate-100");
+            btn.classList.add("text-slate-500", "dark:text-slate-400");
+        });
+        activeBtn.classList.remove("text-slate-500", "dark:text-slate-400");
+        activeBtn.classList.add("bg-white", "dark:bg-slate-700", "shadow-sm",
+                                "text-slate-900", "dark:text-slate-100");
+    }
+
+    function sortAndRender(compareFn, activeBtn) {
+        if (!window._allCompanies || window._allCompanies.length === 0) return;
+        const sorted = [...window._allCompanies].sort(compareFn);
+        window.renderCompanies(sorted);
+        setActive(activeBtn);
+        // Clear search input so filter doesn't interfere
+        const searchInput = document.getElementById("companySearchInput");
+        if (searchInput) searchInput.value = "";
+    }
+
+    if (sortBtns.price) {
+        sortBtns.price.addEventListener("click", () => {
+            sortAndRender((a, b) => a.price - b.price, sortBtns.price);
+        });
+    }
+
+    if (sortBtns.rating) {
+        sortBtns.rating.addEventListener("click", () => {
+            sortAndRender((a, b) => b.rating - a.rating, sortBtns.rating);
+        });
+    }
+
+    if (sortBtns.distance) {
+        sortBtns.distance.addEventListener("click", () => {
+            sortAndRender((a, b) => a.distance_km - b.distance_km, sortBtns.distance);
+        });
+    }
+});
+</script>
+
+<script>
+// --- Profile Dropdown Logic ---
+document.addEventListener("DOMContentLoaded", () => {
+    const profileBtn = document.getElementById("profileBtn");
+    const profileDropdown = document.getElementById("profileDropdown");
+    
+    if(profileBtn && profileDropdown) {
+        profileBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            profileDropdown.classList.toggle("opacity-0");
+            profileDropdown.classList.toggle("invisible");
+            profileDropdown.classList.toggle("scale-95");
+            profileDropdown.classList.toggle("scale-100");
+        });
+        
+        document.addEventListener("click", (e) => {
+            if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+                profileDropdown.classList.add("opacity-0", "invisible", "scale-95");
+                profileDropdown.classList.remove("scale-100");
+            }
+        });
+    }
+});
+
+// --- Map Modal Logic ---
+document.addEventListener("DOMContentLoaded", () => {
+    const viewMapBtn = document.getElementById("viewMapBtn");
+    const closeMapBtn = document.getElementById("closeMapBtn");
+    const mapModal = document.getElementById("mapModal");
+    const mapModalContent = document.getElementById("mapModalContent");
+    const mapLoading = document.getElementById("mapLoading");
+    
+    let map = null;
+    let markersLayer = null;
+
+    if (!viewMapBtn || !mapModal) return;
+
+    viewMapBtn.addEventListener("click", () => {
+        // Open Modal
+        mapModal.classList.remove("opacity-0", "invisible");
+        mapModalContent.classList.remove("scale-95");
+        
+        // Initialize Map if not already done
+        if (!map) {
+            map = L.map("tankerMap").setView([18.5204, 73.8567], 12); // Default to Pune
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+            markersLayer = L.layerGroup().addTo(map);
+        }
+        
+        // Fix leaflet rendering issues in modals
+        setTimeout(() => { map.invalidateSize(); }, 300);
+        
+        fetchAndRenderMapData();
+    });
+
+    closeMapBtn.addEventListener("click", () => {
+        mapModal.classList.add("opacity-0", "invisible");
+        mapModalContent.classList.add("scale-95");
+    });
+
+    async function fetchAndRenderMapData() {
+        if (!mapLoading) return;
+        mapLoading.style.display = "flex";
+        
+        let city = sessionStorage.getItem("city") || "Pune";
+        city = city.charAt(0).toUpperCase() + city.slice(1).toLowerCase();
+
+        try {
+            // Get User Location (Mock)
+            let userLat = 18.5204;
+            let userLng = 73.8567;
+            
+            // Fast API endpoint fetch
+            const res = await fetch(`http://localhost:8001/api/v1/companies/search?district=${encodeURIComponent(city)}`);
+            if (!res.ok) throw new Error("Failed to fetch Map Data from Backend Endpoint");
+            const tankers = await res.json();
+            
+            if (markersLayer) markersLayer.clearLayers();
+            
+            // Find cheapest
+            let cheapestId = null;
+            let minPrice = Infinity;
+            tankers.forEach(t => {
+                if (t.price < minPrice) { minPrice = t.price; cheapestId = t.company_name; }
+            });
+
+            const bounds = [];
+
+            // Update Mock User Location if companies are found
+            if (tankers.length > 0 && tankers[0].latitude) {
+                userLat = tankers[0].latitude - 0.02;
+                userLng = tankers[0].longitude - 0.02;
+            }
+
+            // User marker
+            const userIcon = L.divIcon({
+                html: '<span class="material-symbols-outlined text-blue-600 text-3xl" style="drop-shadow: 0 4px 6px rgba(0,0,0,0.3)">person_pin_circle</span>',
+                className: '',
+                iconSize: [30, 30],
+                iconAnchor: [15, 30]
+            });
+            L.marker([userLat, userLng], {icon: userIcon})
+                .addTo(markersLayer)
+                .bindPopup('<strong class="text-sm font-bold text-slate-800">You are here</strong>');
+            bounds.push([userLat, userLng]);
+
+            tankers.forEach(t => {
+                const lat = t.latitude || (userLat + (Math.random()-0.5)*0.1);
+                const lng = t.longitude || (userLng + (Math.random()-0.5)*0.1);
+                
+                const isCheapest = (t.company_name === cheapestId);
+                const markerColor = isCheapest ? 'text-green-500' : 'text-primary';
+                const distKm = t.distance_km || (Math.random() * 8 + 1).toFixed(1); // true distance
+
+                const icon = L.divIcon({
+                    html: `<span class="material-symbols-outlined ${markerColor} text-4xl" style="drop-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: transform 0.2s;">water_drop</span>`,
+                    className: '',
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 36],
+                    popupAnchor: [0, -36]
+                });
+
+                const popupHtml = `
+                    <div class="px-2 py-1 min-w-[200px]">
+                        <h4 class="font-bold text-slate-900 text-base mb-1">${t.company_name}</h4>
+                        <div class="text-sm text-slate-600 space-y-1 mb-3">
+                            <div class="flex justify-between items-center"><span class="font-medium">Capacity:</span> <span>${t.capacity}L</span></div>
+                            <div class="flex justify-between items-center"><span class="font-medium">Price:</span> <span class="text-green-600 font-bold border ${isCheapest ? "border-green-500 bg-green-50 px-1 rounded": "border-transparent"}">₹${t.price}</span></div>
+                            <div class="flex justify-between items-center"><span class="font-medium">Distance:</span> <span>~${distKm} km</span></div>
+                        </div>
+                        <button class="w-full bg-gradient-to-r from-primary to-blue-600 hover:opacity-90 text-white font-bold py-2 rounded-lg text-sm transition-opacity shadow-md btn-gradient"
+                                onclick="sessionStorage.setItem('companyId','${t.company_id}'); sessionStorage.setItem('companyName','${t.company_name.replace(/'/g, "\\'")}'); sessionStorage.setItem('price','${t.price}'); sessionStorage.setItem('district','${t.district}'); window.location.href='payment.html'">
+                            Book Tanker
+                        </button>
+                    </div>
+                `;
+
+                L.marker([lat, lng], {icon: icon})
+                    .addTo(markersLayer)
+                    .bindPopup(popupHtml);
+                
+                bounds.push([lat, lng]);
+            });
+
+            if (bounds.length > 0) {
+                map.fitBounds(L.latLngBounds(bounds), { padding: [50, 50] });
+            }
+
+        } catch (e) {
+            console.error("Map fetch error:", e);
+        } finally {
+            mapLoading.style.display = "none";
+        }
+    }
+});
+</script>
+</body></html>
