@@ -8,11 +8,7 @@ The application allows users to search tanker companies based on **location, cap
 
 # 🚀 Live Demo
 
-Frontend (Deployed App)
 https://aquaconnect-zeta.vercel.app
-
-Backend API Docs (Swagger)
-https://aquaconnect-backend.onrender.com/docs
 
 ---
 
@@ -125,7 +121,7 @@ GET /api/v1/companies/search
 Example request:
 
 ```
-https://aquaconnect-backend.onrender.com/api/v1/companies/search?district=Pune&capacity=5000
+/api/v1/companies/search?district=Pune&capacity=5000
 ```
 
 Example response:
@@ -267,3 +263,4 @@ https://github.com/aryawaikar
 # 📄 License
 
 This project is developed for educational and demonstration purposes.
+
