@@ -29,7 +29,7 @@ from fastapi import Query, Depends
 from sqlalchemy.orm import Session
 from routers import users, companies, bookings, payments, tracking
 
-from slowapi._rate_limit_exceeded_handler import _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.limiter import limiter
 
