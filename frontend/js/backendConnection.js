@@ -138,10 +138,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Build the API request URL — endpoint is /companies/search
-    const API_BASE ="https://aquaconnect-backend.onrender.com";
-;
-    const url = `${API_BASE}/companies/search?district=${encodeURIComponent(city)}&capacity=${capacity}&timeslot=${encodeURIComponent(timeSlot || "")}`;
-    console.log("API URL:", url);
+const API_BASE = "https://aquaconnect-backend.onrender.com";
+
+const url = `${API_BASE}/api/v1/companies/search?district=${encodeURIComponent(city)}&capacity=${capacity}&timeslot=${encodeURIComponent(timeSlot || "")}`;
+console.log("API URL:", url);
+
 
     // authFetch — attaches JWT if present, falls back to plain fetch for demo sessions
     const authFetch = async (url, options = {}) => {
@@ -216,4 +217,4 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
             if (resultsSubtitle) resultsSubtitle.textContent = "Failed to load results";
         });
-});
+}); 
