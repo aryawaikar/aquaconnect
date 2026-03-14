@@ -138,7 +138,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Build the API request URL — endpoint is /companies/search
-    const API_BASE = "http://localhost:8001/api/v1";
+    const API_BASE ="https://aquaconnect-backend.onrender.com";
+;
     const url = `${API_BASE}/companies/search?district=${encodeURIComponent(city)}&capacity=${capacity}&timeslot=${encodeURIComponent(timeSlot || "")}`;
     console.log("API URL:", url);
 
