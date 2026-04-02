@@ -1,7 +1,7 @@
 // backendConnection.js — fetches and renders company results on results.html
 
 // ─── FIX 1: Single API_BASE for both fetches ───────────────────────────────
-const API_BASE = "http://127.0.0.1:8001";
+const API_BASE = "https://aquaconnect-backend.onrender.com";
 
 // ─── Global State for Coordination ──────────────────────────────────────────
 window._searchStatus = {
