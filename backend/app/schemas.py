@@ -124,6 +124,30 @@ class CompanyFilterResult(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class RecommendationResult(BaseModel):
+    """Response model for GET /recommendations — ranked tanker company."""
+    company_id:        int
+    company_name:      str
+    district:          str
+    city:              str
+    price:             float
+    capacity:          int
+    distance_km:       Optional[float] = None
+    rating:            float
+    available_tankers: int
+    score:             Optional[float] = None
+
+    model_config = {"from_attributes": True}
+
+
+class RecommendationSplitResult(BaseModel):
+    """Response model combining top recommendations and the rest of the list."""
+    recommendations: List[RecommendationResult]
+    others:          List[RecommendationResult]
+
+    model_config = {"from_attributes": True}
+
+
 class TankerLocationResult(BaseModel):
     name: str
     capacity: int

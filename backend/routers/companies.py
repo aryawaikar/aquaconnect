@@ -64,7 +64,11 @@ def search_companies(
         user_lng=user_lng,
     )
 
-    return results if results else []
+    if not results:
+        return []
+
+    # Flatten the split dictionary to keep the old array response format for /search
+    return results["recommendations"] + results["others"]
 
 
 # ───────────────── COMPANY REGISTRATION ─────────────────

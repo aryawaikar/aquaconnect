@@ -56,6 +56,28 @@ DEFAULT_WEIGHTS = {
 }
 
 
+CITY_CONFIG = {
+    "Pune": [
+        "Kothrud", "Baner", "Wakad", "Hinjewadi",
+        "Shivajinagar", "Hadapsar", "Viman Nagar", "Katraj"
+    ],
+    "Mumbai": [
+        "Andheri", "Bandra", "Borivali", "Colaba",
+        "Juhu", "Powai", "Thane", "Navi Mumbai", "Dadar", "Worli"
+    ]
+}
+
+def get_city_from_input(user_input: str) -> str:
+    val = user_input.lower().strip()
+    for city, areas in CITY_CONFIG.items():
+        if city.lower() == val:
+            return city
+        for area in areas:
+            if area.lower() == val:
+                return city
+    return "Pune"  # Default fallback
+
+
 def _normalize(values: List[float]) -> List[float]:
     """Min-max normalize a list to [0, 1]. Returns zeros if all values are equal."""
     if not values:
@@ -105,67 +127,110 @@ def rank_companies(
     user_lat: Optional[float] = None,
     user_lng: Optional[float] = None,
     weights: Optional[Dict[str, float]] = None,
-) -> List[schemas.CompanyFilterResult]:
+) -> dict:
     """
     Main entry point.
 
-    1. Fetch all active companies whose city matches the requested city.
-       (The API param is named 'district' for legacy reasons; the value is
-        actually a city name like 'Mumbai' or 'Pune'.)
-    2. Keep only those that have at least one tanker of the requested capacity.
-       Timeslot is intentionally ignored — tankers do not store timeslot
-       availability in this demo system.
+    1. Fetch all active companies and filter by area using partial string
+       matching on district/city columns. This handles inputs like "Kothrud"
+       matching a company whose district is "Kothrud" and city is "Pune".
+    2. Include companies even if they don't have the exact requested capacity;
+       fall back to any available tanker so results are never empty.
     3. Build a feature vector, normalize, score, and sort.
     """
     weights = weights or DEFAULT_WEIGHTS
 
-    city_query = district.strip()
-    print(f"Search Debug → city={city_query!r}, capacity={capacity}, timeslot={timeslot!r} (ignored)")
+    user_input_loc = district.strip()
+    user_city = get_city_from_input(user_input_loc)
+    area = user_input_loc.lower()
 
-    # Step 1: Get all active companies in the requested city
-    # Filter by city column (case-insensitive), NOT the district sub-area column.
-    companies = (
+    # DEBUG
+    print(f"Search Debug -> location_input={user_input_loc!r}, target_city={user_city!r}, capacity={capacity}")
+    print(f"User area: {area}")
+
+    # Step 1: Fetch all active companies, then apply flexible area-based filtering.
+    # Handles inputs like "Kothrud" matching district="Kothrud" or city="Pune".
+    all_active = (
         db.query(models.Company)
-        .filter(
-            models.Company.city.ilike(city_query),
-            models.Company.is_active == True,          # noqa: E712
-        )
+        .filter(models.Company.is_active == True)          # noqa: E712
         .all()
     )
 
+    print(f"Total tankers: {len(all_active)}")
+
+    companies = [
+        c for c in all_active
+        if area in (c.district or "").lower()
+        or area in (c.city or "").lower()
+    ]
+
+    # Fallback 1: match by resolved city name
     if not companies:
-        print(f"  → No companies found for city={city_query!r}")
-        return []
+        city_lower = user_city.lower()
+        companies = [
+            c for c in all_active
+            if city_lower in (c.city or "").lower()
+            or city_lower in (c.district or "").lower()
+        ]
 
-    print(f"  → {len(companies)} companies found in city={city_query!r}")
+    # Fallback 2 (last resort): first 20 active companies
+    if not companies:
+        companies = all_active[:20]
 
-    # Step 2: Build raw feature data — filter by capacity, ignore timeslot
+    print(f"Filtered: {len(companies)}")
+    print(f"  -> {len(companies)} companies found in total")
+
+    # Step 2: Build raw feature data.
+    # Prefer exact capacity match, but fall back to any available tanker
+    # so that companies are never silently excluded.
     candidates = []
     for company in companies:
-        # Get lowest price for this capacity (None = company doesn't offer it)
         price = crud.get_min_price_for_capacity(db, company.company_id, capacity)
-        if price is None:
-            continue  # company has no tankers of this capacity
-
         avail_count = crud.count_available_tankers(db, company.company_id, capacity)
-        if avail_count == 0:
-            continue
-        
-        distance    = _get_distance_km(company, district, user_lat, user_lng)
+
+        if price is None or avail_count == 0:
+            # Try any available tanker from this company
+            any_avail = (
+                db.query(models.Tanker)
+                .filter(
+                    models.Tanker.company_id == company.company_id,
+                    models.Tanker.availability_status == models.AvailabilityStatus.available,
+                )
+                .first()
+            )
+            if any_avail:
+                if price is None:
+                    price = any_avail.price_per_delivery
+                if avail_count == 0:
+                    avail_count = 1
+            else:
+                # No available tankers at all; still include with avail=0
+                any_tanker = (
+                    db.query(models.Tanker)
+                    .filter(models.Tanker.company_id == company.company_id)
+                    .first()
+                )
+                if price is None:
+                    price = any_tanker.price_per_delivery if any_tanker else 0.0
+                avail_count = 0
+
+        distance = _get_distance_km(company, district, user_lat, user_lng)
 
         candidates.append({
             "company":      company,
-            "price":        price,
+            "price":        price or 0.0,
             "distance":     distance,
             "availability": avail_count,
-            "rating":       company.rating,
+            "rating":       company.rating or 0.0,
+            "district":     company.district,
+            "city":         company.city,
         })
 
     if not candidates:
-        print(f"  → No candidates with capacity={capacity}L")
+        print("  -> No candidates found at all")
         return []
 
-    print(f"  → {len(candidates)} candidates with capacity={capacity}L")
+    print(f"  -> {len(candidates)} candidates with capacity={capacity}L")
 
     # Step 3: Extract vectors for normalization
     prices         = [c["price"]        for c in candidates]
@@ -178,17 +243,42 @@ def rank_companies(
     norm_availabilities = _normalize(availabilities)
     norm_ratings        = _normalize(ratings)
 
+    def score_tanker(user_input: str, company) -> int:
+        loc_score = 0
+        tanker_loc = f"{company.district} {company.city}".lower()
+        u_input = user_input.lower()
+        
+        # Extract city from user input (naive approach: last word)
+        city = u_input.split()[-1] if u_input else ""
+
+        # 1. Exact match
+        if tanker_loc == u_input:
+            loc_score += 120
+            
+        # 2. Partial match
+        if u_input and (u_input in tanker_loc):
+            loc_score += 80
+            
+        # 3. Same city
+        if city and (city in tanker_loc):
+            loc_score += 40
+            
+        return loc_score
+
     # Step 4: Score each candidate
     results = []
     for i, c in enumerate(candidates):
-        score = (
+        base_score = (
             weights["price"]        * (1 - norm_prices[i])        # cheaper  = better
             + weights["distance"]   * (1 - norm_distances[i])     # closer   = better
             + weights["availability"] * norm_availabilities[i]    # more available = better
             + weights["rating"]     * norm_ratings[i]             # higher rating  = better
         )
-
+        
         company = c["company"]
+        location_boost = score_tanker(user_input_loc, company)
+        final_score = base_score + location_boost
+
         results.append(
             schemas.CompanyFilterResult(
                 company_id=company.company_id,
@@ -201,11 +291,16 @@ def rank_companies(
                 capacity=capacity,
                 available_tankers=c["availability"],
                 distance_km=round(c["distance"], 2) if c["distance"] else None,
-                score=round(score, 4),
+                score=round(final_score, 4),
             )
         )
 
     # Step 5: Sort by score descending (best match first)
     results.sort(key=lambda r: r.score, reverse=True)
-    return results
+    
+    # Split
+    return {
+        "recommendations": results[:3],
+        "others": results[3:]
+    }
 

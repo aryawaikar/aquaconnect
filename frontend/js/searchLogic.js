@@ -4,7 +4,14 @@ document.addEventListener("DOMContentLoaded", () => {
     let selectedCapacity = null;
     let selectedTimeSlot = null; // stored in AM/PM display format
     let selectedCity = document.getElementById("citySelect").value;
-    let selectedArea = document.getElementById("areaInput").value;
+    let selectedArea = "";
+
+    const cityAreas = {
+        Pune: ["Kothrud", "Baner", "Wakad", "Hinjewadi"],
+        Mumbai: ["Andheri", "Bandra", "Dadar"],
+        Delhi: ["Saket", "Dwarka", "Rohini"],
+        Bangalore: ["Whitefield", "Indiranagar", "BTM"]
+    };
 
     // DOM refs
     const citySelect   = document.getElementById("citySelect");
@@ -49,11 +56,33 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         updateSummary();
     }
-    citySelect.addEventListener("change", updateLocation);
-    areaInput.addEventListener("input", updateLocation);
+
+    function populateAreas() {
+        const cityValue = citySelect.options[citySelect.selectedIndex].text;
+        const areas = cityAreas[cityValue] || [];
+        
+        areaInput.innerHTML = '<option value="" disabled selected>Select Area</option>';
+        if (areas.length > 0) {
+            areaInput.disabled = false;
+            areas.forEach(area => {
+                const opt = document.createElement("option");
+                opt.value = area;
+                opt.textContent = area;
+                areaInput.appendChild(opt);
+            });
+        } else {
+            areaInput.disabled = true;
+        }
+        
+        selectedArea = "";
+        updateLocation();
+    }
+
+    citySelect.addEventListener("change", populateAreas);
+    areaInput.addEventListener("change", updateLocation);
 
     // Initial synch
-    updateLocation();
+    populateAreas();
 
     // --- Capacity card selection ---
     capacityCards.forEach(card => {
@@ -144,15 +173,33 @@ document.addEventListener("DOMContentLoaded", () => {
         "05:00 PM": "16:00-18:00",
     };
 
+    // Converts a raw 24h time string (e.g. "10:00") → 2-hour slot ("10:00-12:00")
+    function getTimeSlot(time) {
+        const hour = parseInt(time.split(":")[0], 10);
+        const start = hour % 2 === 0 ? hour : hour - 1;
+        const end = start + 2;
+        return `${String(start).padStart(2, "0")}:00-${String(end).padStart(2, "0")}:00`;
+    }
+
     function toBackendTimeslot(displaySlot) {
         if (!displaySlot) return null;
-        return SLOT_MAP[displaySlot] || displaySlot;
+        // 1. Try AM/PM map first (e.g. "10:00 AM" → "10:00-12:00")
+        if (SLOT_MAP[displaySlot]) return SLOT_MAP[displaySlot];
+        // 2. If already in backend format HH:MM-HH:MM, pass through
+        if (/^\d{2}:\d{2}-\d{2}:\d{2}$/.test(displaySlot)) return displaySlot;
+        // 3. Fallback: raw HH:MM string → compute 2-hour slot
+        if (/^\d{1,2}:\d{2}$/.test(displaySlot)) return getTimeSlot(displaySlot);
+        return displaySlot;
     }
 
     // --- Submit / navigate to results ---
     function handleSubmit(e) {
         e.preventDefault();
 
+        if (!selectedArea) {
+            alert("Please select an Area / Locality.");
+            return;
+        }
         if (!selectedCapacity) {
             alert("Please select a Tanker Capacity.");
             return;

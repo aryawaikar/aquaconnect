@@ -17,7 +17,7 @@ from sqlalchemy import func
 
 from app.database import engine, Base, get_db
 from app import models, schemas
-from routers import users, companies, bookings, payments, tracking
+from routers import users, companies, bookings, payments, tracking, recommendations
 
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -39,15 +39,19 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# ── CORS (needed for Vercel frontend) ─────────────────
+# ── CORS ──────────────────────────────────────────────
+# Note: allow_origins=["*"] + allow_credentials=True is invalid per the CORS
+# spec and is rejected by all browsers. Use an explicit origins list instead.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # allow frontend requests
-    allow_credentials=True,
+    allow_origins=["*"],   # 🔥 IMPORTANT
+    allow_credentials=False,  # 🔥 CHANGE THIS
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+@app.get("/")
+def home():
+    return {"msg": "ok"}
 # ── Rate Limiting ─────────────────────────────────────
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -60,6 +64,7 @@ api_v1.include_router(companies.router)
 api_v1.include_router(bookings.router)
 api_v1.include_router(payments.router)
 api_v1.include_router(tracking.router)
+api_v1.include_router(recommendations.router)
 
 app.include_router(api_v1)
 
